@@ -1,0 +1,144 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Điểm danh kỷ luật</title>
+<style>
+body {
+  font-family: Arial;
+  background: #f3f0ff;
+  color: #33245b;
+  text-align: center;
+  padding: 20px;
+}
+.container {
+  max-width: 400px;
+  margin: auto;
+  background: white;
+  padding: 25px;
+  border-radius: 22px;
+}
+.timer {
+  font-size: 45px;
+  font-weight: bold;
+  margin: 25px 0;
+}
+button {
+  width: 100%;
+  padding: 15px;
+  margin: 8px 0;
+  border: 0;
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: bold;
+}
+.start {background:#7655c9;color:white}
+.check {background:#30b77a;color:white}
+.debt {background:#ffeded;color:#d94343}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>💜 ĐIỂM DANH KỶ LUẬT</h1>
+<p>Đừng quên hoàn thành nhiệm vụ nhé!</p>
+<div class="timer" id="timer">01:00:00</div>
+<p id="status">Chưa bắt đầu</p>
+
+<button class="start" onclick="startTimer()">
+🚀 BẮT ĐẦU
+</button>
+<button class="check" onclick="checkIn()">
+✅ ĐIỂM DANH
+</button>
+
+<div class="debt">
+<h3>⏰ Giờ làm bù còn nợ</h3>
+<h1 id="debt">0 giờ</h1>
+</div>
+<button onclick="finishDebt()">
+Hoàn thành 1 giờ làm bù
+</button>
+<p id="message">Cố lên nhé! 💗</p>
+</div>
+
+<script>
+let data = JSON.parse(localStorage.getItem("attendance"))
+|| {deadline:null,debt:0,punished:false};
+
+function save(){
+ localStorage.setItem("attendance",JSON.stringify(data));
+}
+
+function update(){
+ document.getElementById("debt").innerText=data.debt+" giờ";
+
+ if(!data.deadline)return;
+
+ let r=Math.ceil((data.deadline-Date.now())/1000);
+
+ if(r<=0){
+  if(!data.punished){
+   data.debt++;
+   data.punished=true;
+   document.getElementById("status").innerText="❌ Quá hạn!";
+   document.getElementById("message").innerText="Bạn phải làm bù thêm 1 giờ!";
+   save();
+  }
+  document.getElementById("timer").innerText="00:00:00";
+ }else{
+  let h=Math.floor(r/3600);
+  let m=Math.floor(r%3600/60);
+  let s=r%60;
+  document.getElementById("timer").innerText=
+   [h,m,s].map(x=>String(x).padStart(2,"0")).join(":");
+  document.getElementById("status").innerText="Đang chờ điểm danh...";
+ }
+}
+
+function startTimer(){
+ if(data.deadline && !data.punished){
+  alert("Bạn đang có phiên tính giờ!");
+  return;
+ }
+ data.deadline=Date.now()+3600000;
+ data.punished=false;
+ save();
+ update();
+}
+
+function checkIn(){
+ if(!data.deadline){
+  alert("Hãy nhấn BẮT ĐẦU trước!");
+  return;
+ }
+ if(Date.now()>=data.deadline){
+  update();
+  alert("Đã quá hạn! Bạn phải làm bù nhé.");
+  return;
+ }
+ data.deadline=null;
+ data.punished=false;
+ save();
+ document.getElementById("timer").innerText="01:00:00";
+ document.getElementById("status").innerText="✅ Điểm danh thành công!";
+ document.getElementById("message").innerText="Bạn thật tuyệt vời! 💜";
+}
+
+function finishDebt(){
+ if(data.debt>0){
+  data.debt--;
+  save();
+  update();
+  document.getElementById("message").innerText="Đã hoàn thành 1 giờ làm bù! 💪";
+ }else{
+  alert("Bạn không có giờ làm bù!");
+ }
+}
+
+update();
+setInterval(update,1000);
+</script>
+</body>
+</html>
